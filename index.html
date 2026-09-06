@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Forest - Grow Your Forest</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-primary: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --forest-green: #166534;
+            --forest-light: #22c55e;
+            --forest-dark: #14532d;
+            --earth: #78350f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .mode-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            background-color: transparent;
+            border: 2px solid #334155;
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .mode-btn.active {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .mode-btn.forest-active {
+            background-color: var(--forest-green);
+            border-color: var(--forest-light);
+            color: white;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            background-color: #0f172a60;
+            border: 1px solid #33415550;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .panel {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel h2 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .main-tree {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(#81d4fa, #e0f7fa);
+            border-radius: 15px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s ease;
+        }
+
+        .main-tree:active {
+            transform: scale(0.98);
+        }
+
+        .tree-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        #tree {
+            font-size: 100px;
+            margin: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        #tree.grow {
+            transform: scale(1.2);
+        }
+
+        .progress-container {
+            width: 80%;
+            max-width: 500px;
+            height: 20px;
+            background: #cfd8dc;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 15px auto;
+        }
+
+        #growthBar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #66bb6a, #2e7d32);
+            transition: width 0.3s ease;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 18px;
+            margin: 5px;
+            background: #43a047;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s ease, background 0.2s ease;
+        }
+
+        button:hover {
+            background: #2e7d32;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        button:disabled {
+            background: #9e9e9e;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .upgrade-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .crafting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .craft-item {
+            background: #fafafa;
+            border: 2px solid #c8e6c9;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .craft-item h4 {
+            margin: 5px;
+            font-size: 20px;
+        }
+
+        .craft-item p {
+            color: #607d8b;
+            font-size: 14px;
+        }
+
+        #forest {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            min-height: 120px;
+            padding: 15px;
+            background: linear-gradient(#a5d6a7, #66bb6a);
+            border-radius: 15px;
+        }
+
+        .tree-icon {
+            font-size: 45px;
+            text-align: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.35);
+            border-radius: 10px;
+            animation: treeAppear 0.5s ease;
+        }
+
+        @keyframes treeAppear {
+            from { opacity: 0; transform: scale(0); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2e7d32;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+            z-index: 1000;
+            animation: notificationIn 0.4s ease;
+        }
+
+        @keyframes notificationIn {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 700px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+<body>
+
+<div class="game-container">
+    <header>
+        <h1>🌳 Clicker Forest</h1>
+        <p>Click to grow trees, gather resources, and build your forest</p>
+    </header>
+
+    <!-- CLICKER FOREST MODE -->
+    <div id="forestMode">
+        <!-- STATS -->
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-icon">🪵</div>
+                <div class="stat-label">Wood</div>
+                <div class="stat-value" id="wood">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">⛓️</div>
+                <div class="stat-label">Iron</div>
+                <div class="stat-value" id="Iron">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">🪨</div>
+                <div class="stat-label">Rock</div>
+                <div class="stat-value" id="rock">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">⚱️</div>
+                <div class="stat-label">Gold</div>
+                <div class="stat-value" id="gold">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">💎</div>
+                <div class="stat-label">Crystal</div>
+                <div class="stat-value" id="crystal">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-label">Growth</div>
+                <div class="stat-value" id="growth">1.0x</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">🌲</div>
+                <div class="stat-label">Trees</div>
+                <div class="stat-value" id="treeCount">0</div>
+            </div>
+        </div>
+
+        <!-- MAIN TREE -->
+        <div class="panel main-tree" id="mainTreeArea">
+            <div class="tree-name" id="treeName">Tiny Seedling</div>
+            <div id="tree">🌱</div>
+            <div class="progress-container">
+                <div id="growthBar"></div>
+            </div>
+            <p>Click the tree to grow it and gather resources!</p>
+        </div>
+
+        <!-- UPGRADES -->
+        <div class="panel">
+            <h2>⚡ Growth Upgrades</h2>
+            <div class="upgrade-box">
+                <div>
+                    <strong>Better Axe</strong>
+                    <br>
+                    <span id="axeUpgradeText">Gain more wood per click.</span>
+                </div>
+                <button onclick="buyAxeUpgrade()" id="axeUpgradeBtn">Upgrade — 15 🪵</button>
+            </div>
+            <div class="upgrade-box">
+                <div>
+                    <strong>Fertilizer</strong>
+                    <br>
+                    <span id="fertUpgradeText">Grow trees faster.</span>
+                </div>
+                <button onclick="buyFertUpgrade()" id="fertUpgradeBtn">Upgrade — 30 🪵</button>
+            </div>
+            <div class="upgrade-box">
+                <div>
+                    <strong>Auto-Clicker</strong>
+                    <br>
+                    <span id="autoClickerText">Automatically clicks for you.</span>
+                </div>
+                <button onclick="buyAutoClickerUpgrade()" id="autoClickerBtn">Upgrade — 50 🪵</button>
+            </div>
+        </div>
+
+        <!-- CRAFTING -->
+        <div class="panel">
+            <h2>🛠️ Crafting</h2>
+            <div class="crafting-grid">
+                <div class="craft-item">
+                    <h4>🪑 Bench</h4>
+                    <p>10 Wood</p>
+                    <button onclick="craftBench()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🏮 Lantern</h4>
+                    <p>25 Wood</p>
+                    <button onclick="craftLantern()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🪨 Rock Pillar</h4>
+                    <p>15 Rock</p>
+                    <button onclick="craftRockPillar()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🥇 Golden Statue</h4>
+                    <p>8 Gold + 20 Wood</p>
+                    <button onclick="craftGoldenStatue()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🏡 Treehouse</h4>
+                    <p>40 Wood + 2 Iron</p>
+                    <button onclick="craftTreehouse()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>⛩️ Shrine</h4>
+                    <p>70 Wood + 4 Iron</p>
+                    <button onclick="craftShrine1()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>💎 Crystal Altar</h4>
+                    <p>5 Crystal + 30 Iron</p>
+                    <button onclick="craftCrystalAltar()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>⛩️ Iron Shrine</h4>
+                    <p>50 Wood + 6 Iron</p>
+                    <button onclick="craftShrine2()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🏠 Building</h4>
+                    <p>80 Wood + 10 Iron</p>
+                    <button onclick="craftBuilding()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🏢 Apartment</h4>
+                    <p>100 Wood + 20 Iron</p>
+                    <button onclick="craftApartment()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🏯 Temple</h4>
+                    <p>500 Wood + 50 Iron</p>
+                    <button onclick="craftTemple()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🏰 Castle</h4>
+                    <p>700 Wood + 80 Iron</p>
+                    <button onclick="craftCastle()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🏘️ Town</h4>
+                    <p>2000 Wood + 700 Iron</p>
+                    <button onclick="craftTown()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🏙️ City</h4>
+                    <p>4000 Wood + 900 Iron</p>
+                    <button onclick="craftCity()">Craft</button>
+                </div>
+                <div class="craft-item">
+                    <h4>🏰 Kingdom</h4>
+                    <p>9000 Wood + 1000 Iron</p>
+                    <button onclick="craftKingdom()">Craft</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOREST -->
+        <div class="panel">
+            <h2>🌲 Your Forest</h2>
+            <div id="forest">
+                <p id="emptyForest">Your forest is empty. Click the tree to grow your first tree!</p>
+            </div>
+        </div>
+
+        <!-- REBIRTH -->
+        <div class="panel">
+            <h2>🌟 Rebirth</h2>
+            <p>Rebirth your forest to start over and gain permanent progression.</p>
+            <p>🔄 Rebirths: <strong id="rebirthCount">0</strong></p>
+            <p>✨ Nature Points: <strong id="naturePoints">0</strong></p>
+            <p>⏱️ Required: <strong id="rebirthRequirement">100</strong> minutes of focus</p>
+            <button id="rebirthBtn" onclick="performRebirth()" disabled>🌟 Rebirth</button>
+        </div>
+
+        <!-- SAVE / RESET -->
+        <div class="panel">
+            <h2>💾 Game Data</h2>
+            <button onclick="saveGame()">💾 Save Game</button>
+            <button onclick="loadGame()">📂 Load Game</button>
+            <button class="danger" onclick="resetGame()">🗑️ Reset Game</button>
+        </div>
+    </div>
+</div>
+
+<div id="notificationContainer"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
