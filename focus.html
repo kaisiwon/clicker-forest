@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>GrowATree.io — Focus Forest</title>
+</head>
+<body>
+
+<div class="game">
+
+    <header>
+        <h1>🌳 Focus Forest</h1>
+        <p>Focus. Grow. Build your forest.</p>
+    </header>
+
+    <!-- STATS -->
+    <div class="panel">
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-icon">🪵</div>
+                <div>Wood</div>
+                <div class="stat-value" id="wood">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">⛓️</div>
+                <div>Iron</div>
+                <div class="stat-value" id="Iron">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">🪨</div>
+                <div>Rock</div>
+                <div class="stat-value" id="rock">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">⚱️</div>
+                <div>Gold</div>
+                <div class="stat-value" id="gold">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">💎</div>
+                <div>Crystal</div>
+                <div class="stat-value" id="crystal">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">⚡</div>
+                <div>Growth</div>
+                <div class="stat-value" id="growth">1.0x</div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon">🌲</div>
+                <div>Trees</div>
+                <div class="stat-value" id="treeCount">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOCUS TIMER -->
+    <div class="panel">
+        <h2>⏱️ Focus Session</h2>
+
+        <p id="timer">Timer: 0 min</p>
+
+        <p id="focusSeconds">
+            Focus Time:
+            <span id="focusSecondsValue">0</span>
+            seconds
+        </p>
+
+        <button id="startBtn" onclick="startFocus()">
+            🌱 Start Focus Session
+        </button>
+
+        <button id="stopBtn" onclick="stopFocus()">
+            🛑 Stop Session
+        </button>
+
+        <p id="RockCountdown">
+            🪨 Next Rock:
+            <span id="RockCountdownValue">30</span>s
+        </p>
+
+        <p id="GoldCountdown">
+            ⚱️ Next Gold:
+            <span id="GoldCountdownValue">60</span>s
+        </p>
+
+        <p id="IronCountdown">
+            ⛓️ Next Iron:
+            <span id="IronCountdownValue">120</span>s
+        </p>
+
+        <p id="CrystalCountdown">
+            💎 Next Crystal:
+            <span id="CrystalCountdownValue">120</span>s
+        </p>
+    </div>
+
+    <!-- TREE -->
+    <div class="panel main-tree">
+        <div class="tree-name" id="treeName">Tiny Seedling</div>
+        <div id="tree">🌱</div>
+        <div class="progress-container">
+            <div id="growthBar"></div>
+        </div>
+        <p>Keep focusing to grow your tree!</p>
+    </div>
+
+    <!-- UPGRADES -->
+    <div class="panel">
+        <h2>⚡ Growth Upgrades</h2>
+        <div class="upgrade-box">
+            <div>
+                <strong>Growth Speed</strong><br>
+                <span id="growthUpgradeText">Make your trees grow faster.</span>
+            </div>
+            <button onclick="buyGrowthUpgrade()">Upgrade — 25 🪵</button>
+        </div>
+    </div>
+
+    <!-- CRAFTING -->
+    <div class="panel">
+        <h2>🛠️ Crafting</h2>
+        <div class="crafting-grid">
+            <div class="craft-item">
+                <h4>🪑 Bench</h4><p>10 Wood</p>
+                <button onclick="craftBench()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🏮 Lantern</h4><p>25 Wood</p>
+                <button onclick="craftLantern()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🪨 Rock Pillar</h4><p>15 Rock</p>
+                <button onclick="craftRockPillar()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🥇 Golden Statue</h4><p>8 Gold + 20 Wood</p>
+                <button onclick="craftGoldenStatue()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🏡 Treehouse</h4><p>40 Wood + 2 Iron</p>
+                <button onclick="craftTreehouse()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>⛩️ Shrine</h4><p>70 Wood + 4 Iron</p>
+                <button onclick="craftShrine1()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>💎 Crystal Altar</h4><p>5 Crystal + 30 Iron</p>
+                <button onclick="craftCrystalAltar()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>⛩️ Iron Shrine</h4><p>50 Wood + 6 Iron</p>
+                <button onclick="craftShrine2()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🏠 Building</h4><p>80 Wood + 10 Iron</p>
+                <button onclick="craftBuilding()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🏢 Apartment</h4><p>100 Wood + 20 Iron</p>
+                <button onclick="craftApartment()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🏯 Temple</h4><p>500 Wood + 50 Iron</p>
+                <button onclick="craftTemple()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🏰 Castle</h4><p>700 Wood + 80 Iron</p>
+                <button onclick="craftCastle()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🏘️ Town</h4><p>2000 Wood + 700 Iron</p>
+                <button onclick="craftTown()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🏙️ City</h4><p>4000 Wood + 900 Iron</p>
+                <button onclick="craftCity()">Craft</button>
+            </div>
+            <div class="craft-item">
+                <h4>🏰 Kingdom</h4><p>9000 Wood + 1000 Iron</p>
+                <button onclick="craftKingdom()">Craft</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOREST -->
+    <div class="panel">
+        <h2>🌲 Your Forest</h2>
+        <div id="forest">
+            <p id="emptyForest">Your forest is empty. Start focusing to grow your first tree!</p>
+        </div>
+    </div>
+
+    <!-- REBIRTH -->
+    <div class="panel">
+        <h2>🌟 Rebirth</h2>
+        <p>Rebirth your forest to start over and gain permanent progression.</p>
+        <p>🔄 Rebirths: <strong id="rebirthCount">0</strong></p>
+        <p>✨ Nature Points: <strong id="naturePoints">0</strong></p>
+        <p>⏱️ Required: <strong id="rebirthRequirement">100</strong> minutes</p>
+        <button id="rebirthBtn" onclick="performRebirth()" disabled>🌟 Rebirth</button>
+    </div>
+
+    <!-- SAVE / RESET -->
+    <div class="panel">
+        <h2>💾 Game Data</h2>
+        <button onclick="saveGame()">💾 Save Game</button>
+        <button onclick="loadGame()">📂 Load Game</button>
+        <button class="danger" onclick="resetGame()">🗑️ Reset Game</button>
+    </div>
+
+    <footer>
+        <p>🌳 GrowATree.io — Focus today. Build a forest tomorrow.</p>
+        <p>
+            <a href="https://forms.gle/dx2Bb4GXbTdvmB3r9" target="_blank">Report a bug / give feedback</a>
+        </p>
+        <p>
+            <a href="https://kaisiwon.github.io/clicker-forest/" target="_blank">Wrong focus game? Play Clicker Forest instead! (Coming soon)</a>
+        </p>
+    </footer>
+</div>
+
+<div id="focusLostBanner" role="status" aria-live="polite">
+    Focus lost. Your session is paused until you return.
+</div>
+
+<div id="notificationContainer"></div>
+
+<script src="focus.js"></script>
+</body>
+</html>
