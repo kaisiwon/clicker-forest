@@ -26,6 +26,8 @@ let forest = [];
 
 let rebirths = 0;
 let naturePoints = 0;
+let totalFocusSeconds = 0;
+let permanentUpgrades = { growthLevel: 0, focusTimeLevel: 0, resourceLevel: 0 };
 let rebirthRequirement = 100;
 
 let autoClickerLevel = 0;
@@ -89,6 +91,7 @@ const growthBar = document.getElementById("growthBar");
 const forestEl = document.getElementById("forest");
 const emptyForestEl = document.getElementById("emptyForest");
 const mainTreeArea = document.getElementById("mainTreeArea");
+const forestModeDiv = document.getElementById("forestMode");
 
 const rebirthCountEl = document.getElementById("rebirthCount");
 const naturePointsEl = document.getElementById("naturePoints");
@@ -109,22 +112,22 @@ document.addEventListener("DOMContentLoaded", () => {
     updateForest();
     startPassiveResources();
     updateAutoClicker();
-    
+
     mainTreeArea.addEventListener('click', (e) => {
         const clickValue = clickPower * growthMultiplier;
         wood += clickValue;
         totalClicks++;
         treeProgress++;
-        
+
         updateTreeProgress();
         updateUI();
         saveGame();
-        
+
         treeEl.classList.add('grow');
         setTimeout(() => treeEl.classList.remove('grow'), 300);
-        
+
         showFloatingText(e.clientX, e.clientY, `+${clickValue.toFixed(1)} 🪵`);
-        
+
         if (Math.random() < 0.05) {
             const bonus = Math.floor(Math.random() * 3) + 1;
             if (Math.random() < 0.5) {
@@ -135,12 +138,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 showNotification(`🪨 +${bonus} Rock!`);
             }
         }
-        
+
         if (Math.random() < 0.01) {
             gold += 1;
             showNotification(`⚱️ +1 Gold!`);
         }
-        
+
         if (Math.random() < 0.005) {
             crystal += 1;
             showNotification(`💎 +1 Crystal!`);
@@ -155,64 +158,64 @@ document.addEventListener("DOMContentLoaded", () => {
 function updateTreeProgress() {
     const nextStage = stages[currentTreeStage + 1];
     if (!nextStage) return;
-    
+
     if (treeProgress >= nextStage.required) {
         treeProgress = 0;
         currentTreeStage++;
-        
+
         treeEl.textContent = stages[currentTreeStage].emoji;
         treeNameEl.textContent = stages[currentTreeStage].name;
-        
+
         showNotification(`🌳 Your tree grew into a ${stages[currentTreeStage].name}!`);
-        
+
         // Check if tree is complete
         if (currentTreeStage >= stages.length - 1) {
             finishTree();
         }
     }
-    
+
     updateGrowthBar();
 }
 
 function updateGrowthBar() {
     const current = stages[currentTreeStage];
     const next = stages[currentTreeStage + 1];
-    
+
     if (!next) {
         growthBar.style.width = "100%";
         return;
     }
-    
+
     const start = current.required;
     const end = next.required;
     const progress = ((treeProgress - start) / (end - start)) * 100;
     const percentage = Math.max(0, Math.min(100, progress));
-    
+
     growthBar.style.width = percentage + "%";
 }
 
 function finishTree() {
     const minutes = Math.floor(totalClicks / 60) + 1;
     const treeSpecies = getTreeSpecies(totalTreesGrown);
-    
+
     forest.push({
         emoji: treeSpecies.emoji,
         name: treeSpecies.name,
         clicks: totalClicks,
         date: new Date().toLocaleDateString()
     });
-    
+
     totalTreesGrown++;
     wood += 10;
-    
+
     showNotification(`🌲 ${treeSpecies.name} added to your forest! +10 Wood`);
-    
+
     // Reset tree
     currentTreeStage = 0;
     treeProgress = 0;
     treeEl.textContent = stages[0].emoji;
     treeNameEl.textContent = stages[0].name;
-    
+
     updateForest();
     updateUI();
     saveGame();
@@ -259,12 +262,69 @@ function buyAutoClickerUpgrade() {
     saveGame();
 }
 
+function applyPermanentUpgrades() {
+    growthMultiplier += permanentUpgrades.growthLevel * 0.25;
+}
+
+function getPermanentGrowthCost() {
+    return 2 * (permanentUpgrades.growthLevel + 1);
+}
+
+function buyPermanentGrowth() {
+    const cost = getPermanentGrowthCost();
+    if (naturePoints < cost) {
+        showNotification("❌ Not enough Nature Points!");
+        return;
+    }
+    naturePoints -= cost;
+    permanentUpgrades.growthLevel++;
+    growthMultiplier += 0.25;
+    showNotification(`🌱 Permanent growth upgraded! ${growthMultiplier.toFixed(2)}x total`);
+    updateUI();
+    saveGame();
+}
+
+function getPermanentResourceCost() {
+    return 3 * (permanentUpgrades.resourceLevel + 1);
+}
+
+function buyPermanentResources() {
+    const cost = getPermanentResourceCost();
+    if (naturePoints < cost) {
+        showNotification("❌ Not enough Nature Points!");
+        return;
+    }
+    naturePoints -= cost;
+    permanentUpgrades.resourceLevel++;
+    showNotification(`🌿 Resource boost upgraded! Level ${permanentUpgrades.resourceLevel}`);
+    updateUI();
+    saveGame();
+}
+
+function getFocusTimeCost() {
+    return 5 * (permanentUpgrades.focusTimeLevel + 1);
+}
+
+function buyFocusTime() {
+    const cost = getFocusTimeCost();
+    if (naturePoints < cost) {
+        showNotification("❌ Not enough Nature Points!");
+        return;
+    }
+    naturePoints -= cost;
+    permanentUpgrades.focusTimeLevel++;
+    totalFocusSeconds += 600;
+    showNotification("⏱️ Added 10 minutes of focus time!");
+    updateUI();
+    saveGame();
+}
+
 function updateAutoClicker() {
     if (autoClickerInterval) clearInterval(autoClickerInterval);
     if (autoClickerLevel <= 0) return;
-    
+
     autoClickerInterval = setInterval(() => {
-        if (forestModeDiv.classList.contains('hidden')) return;
+        if (forestModeDiv?.classList?.contains('hidden')) return;
         const amount = autoClickerLevel * clickPower * growthMultiplier;
         wood += amount;
         totalClicks += autoClickerLevel;
@@ -275,10 +335,10 @@ function updateAutoClicker() {
 function startPassiveResources() {
     if (resourceInterval) clearInterval(resourceInterval);
     resourceInterval = setInterval(() => {
-        if (forestModeDiv.classList.contains('hidden')) return;
-        
+        if (forestModeDiv?.classList?.contains('hidden')) return;
+
         const bonus = Math.max(1, Math.floor(growthMultiplier));
-        
+
         if (Math.random() < 0.3) {
             Iron += bonus;
         }
@@ -291,7 +351,11 @@ function startPassiveResources() {
         if (Math.random() < 0.1) {
             crystal += 1;
         }
-        
+
+        if (permanentUpgrades.resourceLevel > 0) {
+            wood += permanentUpgrades.resourceLevel;
+        }
+
         updateUI();
         saveGame();
     }, 3000);
@@ -458,7 +522,7 @@ function craftKingdom() {
 
 function updateForest() {
     forestEl.innerHTML = "";
-    
+
     if (forest.length === 0) {
         const empty = document.createElement("p");
         empty.id = "emptyForest";
@@ -466,7 +530,7 @@ function updateForest() {
         forestEl.appendChild(empty);
         return;
     }
-    
+
     forest.forEach(tree => {
         const treeElement = document.createElement("div");
         treeElement.className = "tree-icon";
@@ -488,24 +552,46 @@ function updateUI() {
     crystalEl.textContent = Math.floor(crystal);
     growthEl.textContent = growthMultiplier.toFixed(1) + "x";
     treeCountEl.textContent = forest.length;
-    
+
     // Rebirth
     rebirthCountEl.textContent = rebirths;
     naturePointsEl.textContent = naturePoints;
     rebirthRequirementEl.textContent = rebirthRequirement;
-    
+
+    const naturePointsShopEl = document.getElementById("naturePointsShop");
+    if (naturePointsShopEl) naturePointsShopEl.textContent = naturePoints;
+
+    const pgCost = getPermanentGrowthCost();
+    const pgBtn = document.getElementById("buyPermanentGrowthBtn");
+    if (pgBtn) {
+        pgBtn.textContent = `Buy — ${pgCost} 🌱`;
+        pgBtn.disabled = naturePoints < pgCost;
+    }
+    const prCost = getPermanentResourceCost();
+    const prBtn = document.getElementById("buyPermanentResourceBtn");
+    if (prBtn) {
+        prBtn.textContent = `Buy — ${prCost} 🌿`;
+        prBtn.disabled = naturePoints < prCost;
+    }
+    const ftCost = getFocusTimeCost();
+    const ftBtn = document.getElementById("buyFocusTimeBtn");
+    if (ftBtn) {
+        ftBtn.textContent = `Buy — ${ftCost} ⏱️`;
+        ftBtn.disabled = naturePoints < ftCost;
+    }
+
     const totalMinutes = Math.floor(totalClicks / 60);
     rebirthBtn.disabled = totalMinutes < rebirthRequirement;
-    
+
     // Upgrade buttons
     const axeCost = 15 + (clickPower - 1) * 10;
     axeUpgradeBtn.textContent = `Upgrade — ${axeCost} 🪵`;
     axeUpgradeBtn.disabled = wood < axeCost;
-    
+
     const fertCost = 30 + fertLevel * 20;
     fertUpgradeBtn.textContent = `Upgrade — ${fertCost} 🪵`;
     fertUpgradeBtn.disabled = wood < fertCost;
-    
+
     const autoCost = 50 + autoClickerLevel * 100;
     autoClickerBtn.textContent = `Upgrade — ${autoCost} 🪵`;
     autoClickerBtn.disabled = wood < autoCost;
@@ -518,12 +604,12 @@ function updateUI() {
 function showNotification(message) {
     const container = document.getElementById("notificationContainer");
     if (!container) return;
-    
+
     const notification = document.createElement("div");
     notification.className = "notification";
     notification.textContent = message;
     container.appendChild(notification);
-    
+
     setTimeout(() => notification.remove(), 2500);
 }
 
@@ -565,13 +651,14 @@ function performRebirth() {
         showNotification("❌ Need more clicks!");
         return;
     }
-    
+
     const confirmed = confirm("🌟 Rebirth your forest?\n\nYour resources and forest will reset.\nYou will gain 1 Rebirth and 1 Nature Point.");
     if (!confirmed) return;
-    
+
     rebirths++;
     naturePoints++;
-    
+    applyPermanentUpgrades();
+
     wood = 0;
     Iron = 0;
     rock = 0;
@@ -585,14 +672,14 @@ function performRebirth() {
     currentTreeStage = 0;
     treeProgress = 0;
     forest = [];
-    
+
     treeEl.textContent = stages[0].emoji;
     treeNameEl.textContent = stages[0].name;
-    
+
     updateForest();
     updateUI();
     saveGame();
-    
+
     showNotification(`🌟 Rebirth ${rebirths} complete! +1 Nature Point`);
 }
 
@@ -607,7 +694,8 @@ function saveGame() {
         totalClicks, totalTreesGrown,
         currentTreeStage, treeProgress,
         forest,
-        rebirths, naturePoints, rebirthRequirement
+        rebirths, naturePoints, rebirthRequirement, totalFocusSeconds,
+        permanentUpgrades
     };
     localStorage.setItem("clickerForestSave", JSON.stringify(gameData));
 }
@@ -615,7 +703,7 @@ function saveGame() {
 function loadGame() {
     const saved = localStorage.getItem("clickerForestSave");
     if (!saved) return;
-    
+
     try {
         const data = JSON.parse(saved);
         wood = Number(data.wood) || 0;
@@ -636,8 +724,10 @@ function loadGame() {
         forest = Array.isArray(data.forest) ? data.forest : [];
         rebirths = Number(data.rebirths) || 0;
         naturePoints = Number(data.naturePoints) || 0;
+        totalFocusSeconds = Number(data.totalFocusSeconds) || 0;
         rebirthRequirement = Number(data.rebirthRequirement) || 100;
-        
+        permanentUpgrades = { growthLevel: 0, focusTimeLevel: 0, resourceLevel: 0, ...(data.permanentUpgrades || {}) };
+
         treeEl.textContent = stages[currentTreeStage].emoji;
         treeNameEl.textContent = stages[currentTreeStage].name;
     } catch (error) {
@@ -648,7 +738,7 @@ function loadGame() {
 function resetGame() {
     const confirmed = confirm("Are you sure you want to reset your entire forest?");
     if (!confirmed) return;
-    
+
     wood = 0;
     Iron = 0;
     rock = 0;
@@ -665,12 +755,14 @@ function resetGame() {
     forest = [];
     rebirths = 0;
     naturePoints = 0;
-    
+    totalFocusSeconds = 0;
+    permanentUpgrades = { growthLevel: 0, focusTimeLevel: 0, resourceLevel: 0 };
+
     localStorage.removeItem("clickerForestSave");
-    
+
     treeEl.textContent = stages[0].emoji;
     treeNameEl.textContent = stages[0].name;
-    
+
     updateForest();
     updateUI();
     showNotification("🗑️ Forest reset.");
@@ -690,6 +782,9 @@ window.performRebirth = performRebirth;
 window.buyAxeUpgrade = buyAxeUpgrade;
 window.buyFertUpgrade = buyFertUpgrade;
 window.buyAutoClickerUpgrade = buyAutoClickerUpgrade;
+window.buyPermanentGrowth = buyPermanentGrowth;
+window.buyPermanentResources = buyPermanentResources;
+window.buyFocusTime = buyFocusTime;
 window.craftBench = craftBench;
 window.craftLantern = craftLantern;
 window.craftTreehouse = craftTreehouse;

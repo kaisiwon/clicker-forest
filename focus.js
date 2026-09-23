@@ -23,6 +23,7 @@ let growthMultiplier = 1;
 // ⭐ REBIRTH SYSTEM
 let rebirths = 0;
 let naturePoints = 0;
+let permanentUpgrades = { growthLevel: 0, focusTimeLevel: 0, resourceLevel: 0 };
 
 // How many total focus minutes are required
 // for the next rebirth.
@@ -214,6 +215,15 @@ function focusTick() {
         showNotification("💎 +1 Crystal");
     }
 
+    if (permanentUpgrades.resourceLevel > 0 && focusSeconds % 60 === 0) {
+        const bonus = permanentUpgrades.resourceLevel;
+        wood += bonus;
+        Iron += bonus;
+        rock += bonus;
+        gold += bonus;
+        crystal += bonus;
+    }
+
     updateTree();
     updateUI();
     saveGame();
@@ -357,6 +367,27 @@ function updateUI() {
     if (rebirthCountEl) rebirthCountEl.textContent = rebirths;
     if (naturePointsEl) naturePointsEl.textContent = naturePoints;
     if (rebirthRequirementEl) rebirthRequirementEl.textContent = rebirthRequirement;
+    const naturePointsShopEl = document.getElementById("naturePointsShop");
+    if (naturePointsShopEl) naturePointsShopEl.textContent = naturePoints;
+
+    const growthShopBtn = document.getElementById("buyPermanentGrowthBtn");
+    const resourceShopBtn = document.getElementById("buyPermanentResourceBtn");
+    const focusShopBtn = document.getElementById("buyFocusTimeBtn");
+    if (growthShopBtn) {
+        const cost = getPermanentGrowthCost();
+        growthShopBtn.textContent = `Buy — ${cost} 🌱`;
+        growthShopBtn.disabled = naturePoints < cost;
+    }
+    if (resourceShopBtn) {
+        const cost = getPermanentResourceCost();
+        resourceShopBtn.textContent = `Buy — ${cost} 🌿`;
+        resourceShopBtn.disabled = naturePoints < cost;
+    }
+    if (focusShopBtn) {
+        const cost = getFocusTimeCost();
+        focusShopBtn.textContent = `Buy — ${cost} ⏱️`;
+        focusShopBtn.disabled = naturePoints < cost;
+    }
 
     // Enable rebirth when enough focus time has been completed.
     if (rebirthBtn) {
@@ -453,6 +484,62 @@ function buyGrowthUpgrade() {
     saveGame();
 }
 
+function applyPermanentUpgrades() {
+    growthMultiplier += permanentUpgrades.growthLevel * 0.25;
+}
+
+function getPermanentGrowthCost() {
+    return 2 * (permanentUpgrades.growthLevel + 1);
+}
+
+function buyPermanentGrowth() {
+    const cost = getPermanentGrowthCost();
+    if (naturePoints < cost) {
+        showNotification("❌ Not enough Nature Points!");
+        return;
+    }
+    naturePoints -= cost;
+    permanentUpgrades.growthLevel++;
+    growthMultiplier += 0.25;
+    showNotification(`🌱 Permanent growth upgraded! ${growthMultiplier.toFixed(2)}x total`);
+    updateUI();
+    saveGame();
+}
+
+function getPermanentResourceCost() {
+    return 3 * (permanentUpgrades.resourceLevel + 1);
+}
+
+function buyPermanentResources() {
+    const cost = getPermanentResourceCost();
+    if (naturePoints < cost) {
+        showNotification("❌ Not enough Nature Points!");
+        return;
+    }
+    naturePoints -= cost;
+    permanentUpgrades.resourceLevel++;
+    showNotification(`🌿 Resource boost upgraded! +${permanentUpgrades.resourceLevel} every 60s`);
+    updateUI();
+    saveGame();
+}
+
+function getFocusTimeCost() {
+    return 5 * (permanentUpgrades.focusTimeLevel + 1);
+}
+
+function buyFocusTime() {
+    const cost = getFocusTimeCost();
+    if (naturePoints < cost) {
+        showNotification("❌ Not enough Nature Points!");
+        return;
+    }
+    naturePoints -= cost;
+    permanentUpgrades.focusTimeLevel++;
+    totalFocusSeconds += 600;
+    showNotification("⏱️ Added 10 minutes of focus time!");
+    updateUI();
+    saveGame();
+}
 
 // ============================================================
 // CRAFTING
@@ -610,7 +697,8 @@ function saveGame() {
         wood, Iron, rock, gold, crystal,
         totalFocusSeconds, focusSeconds, currentTreeStage,
         growthMultiplier, forest,
-        rebirths, naturePoints, rebirthRequirement
+        rebirths, naturePoints, rebirthRequirement,
+        permanentUpgrades
     };
     localStorage.setItem("focusForestSave", JSON.stringify(gameData));
 }
@@ -642,6 +730,7 @@ function loadGame() {
         rebirths = Number(data.rebirths) || 0;
         naturePoints = Number(data.naturePoints) || 0;
         rebirthRequirement = Number(data.rebirthRequirement) || 100;
+        permanentUpgrades = { growthLevel: 0, focusTimeLevel: 0, resourceLevel: 0, ...(data.permanentUpgrades || {}) };
 
         treeEl.textContent = stages[currentTreeStage].emoji;
         treeName.textContent = stages[currentTreeStage].name;
@@ -656,6 +745,7 @@ function resetGameData() {
     totalFocusSeconds = 0; focusSeconds = 0;
     currentTreeStage = 0; growthMultiplier = 1;
     forest = []; rebirths = 0; naturePoints = 0; rebirthRequirement = 100;
+    permanentUpgrades = { growthLevel: 0, focusTimeLevel: 0, resourceLevel: 0 };
 }
 
 
@@ -767,6 +857,7 @@ function performRebirth() {
     wood = 0; Iron = 0; rock = 0; gold = 0; crystal = 0;
     focusSeconds = 0;
     growthMultiplier = 1;
+    applyPermanentUpgrades();
     forest = [];
     currentTreeStage = 0;
 
@@ -798,6 +889,9 @@ window.startFocus = startFocus;
 window.stopFocus = stopFocus;
 window.performRebirth = performRebirth;
 window.buyGrowthUpgrade = buyGrowthUpgrade;
+window.buyPermanentGrowth = buyPermanentGrowth;
+window.buyPermanentResources = buyPermanentResources;
+window.buyFocusTime = buyFocusTime;
 window.craftBench = craftBench;
 window.craftLantern = craftLantern;
 window.craftTreehouse = craftTreehouse;

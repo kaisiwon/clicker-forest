@@ -204,6 +204,29 @@
         <button id="rebirthBtn" onclick="performRebirth()" disabled>🌟 Rebirth</button>
     </div>
 
+    <!-- NATURE POINT SHOP -->
+    <div class="panel">
+        <h2>✨ Nature Point Shop</h2>
+        <p>✨ Nature Points: <strong id="naturePointsShop">0</strong></p>
+        <div class="crafting-grid">
+            <div class="craft-item">
+                <h4>⚡ Permanent Growth</h4>
+                <p id="permanentGrowthDesc">+0.25x growth</p>
+                <button id="buyPermanentGrowthBtn" onclick="buyPermanentGrowth()">Buy — <span id="permanentGrowthCost">2</span> 🌱</button>
+            </div>
+            <div class="craft-item">
+                <h4>🌿 Resource Boost</h4>
+                <p id="permanentResourceDesc">+resources every 60s</p>
+                <button id="buyPermanentResourceBtn" onclick="buyPermanentResources()">Buy — <span id="permanentResourceCost">3</span> 🌿</button>
+            </div>
+            <div class="craft-item">
+                <h4>⏱️ Focus Time</h4>
+                <p id="focusTimeDesc">+10 minutes focus progress</p>
+                <button id="buyFocusTimeBtn" onclick="buyFocusTime()">Buy — <span id="focusTimeCost">5</span> ⏱️</button>
+            </div>
+        </div>
+    </div>
+
     <!-- SAVE / RESET -->
     <div class="panel">
         <h2>💾 Game Data</h2>
